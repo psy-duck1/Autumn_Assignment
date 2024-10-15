@@ -91,8 +91,6 @@ class NotificationSettingSerializer(serializers.ModelSerializer):
         model = NotificationSetting
         fields = '__all__'
 
-# Nested Serializers for more detailed representations
-
 class UserDetailSerializer(UserSerializer):
     roles = RoleSerializer(many=True, read_only=True)
     
@@ -103,7 +101,7 @@ class TeamDetailSerializer(TeamSerializer):
     members = UserSerializer(many=True, read_only=True)
     
     class Meta(TeamSerializer.Meta):
-        fields = TeamSerializer.Meta.fields + ['members']
+        fields = list(TeamSerializer.Meta.fields) + ['members']
 
 class AssignmentDetailSerializer(AssignmentSerializer):
     subtasks = SubTaskSerializer(many=True, read_only=True)
@@ -111,18 +109,20 @@ class AssignmentDetailSerializer(AssignmentSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     
     class Meta(AssignmentSerializer.Meta):
-        fields = AssignmentSerializer.Meta.fields + ['subtasks', 'submissions', 'comments']
+        fields = list(AssignmentSerializer.Meta.fields) + ['subtasks', 'submissions', 'comments']
 
 class SubmissionDetailSerializer(SubmissionSerializer):
     attachments = SubmissionAttachmentSerializer(many=True, read_only=True)
     score = SubmissionScoreSerializer(read_only=True)
     
     class Meta(SubmissionSerializer.Meta):
-        fields = SubmissionSerializer.Meta.fields + ['attachments', 'score']
+        fields = list(SubmissionSerializer.Meta.fields) + ['attachments', 'score']
 
 class OrganizationDetailSerializer(OrganizationSerializer):
     teams = TeamSerializer(many=True, read_only=True)
     assignments = AssignmentSerializer(many=True, read_only=True)
     
     class Meta(OrganizationSerializer.Meta):
-        fields = OrganizationSerializer.Meta.fields + ['teams', 'assignments']
+        fields = list(OrganizationSerializer.Meta.fields) + ['teams', 'assignments']
+
+
