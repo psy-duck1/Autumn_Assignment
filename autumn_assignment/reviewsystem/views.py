@@ -3,11 +3,13 @@ from rest_framework.response import Response
 from django.http import HttpResponse, HttpResponseRedirect
 import os
 import requests
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from rest_framework.authentication import SessionAuthentication
 from django.contrib.auth import login, logout, authenticate
 from .models import User
 from .serializers import UserSerializer
+from django.views.generic import TemplateView
+from django.urls import reverse
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -30,6 +32,9 @@ params = {'client_id': client_id,
         'code': '' ,
         'redirect_uri' : redirect_uri,
         'state': success_string1}
+
+class LoginView(TemplateView):
+    template_name = 'reviewsystem/login.html'
 
 class RequestAccessAPI(APIView):
     def get(self, request):

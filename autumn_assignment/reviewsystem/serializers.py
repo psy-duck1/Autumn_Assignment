@@ -11,24 +11,19 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = '__all__'
-
-class UserRoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserRole
-        fields = '__all__'
-
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = '__all__'
 
-class OrganizationRoleSerializer(serializers.ModelSerializer):
+class RoleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrganizationRole
+        model = Role
+        fields = '__all__'
+
+class UserOrganizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserOrganizationRole
         fields = '__all__'
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -92,10 +87,10 @@ class NotificationSettingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserDetailSerializer(UserSerializer):
-    roles = RoleSerializer(many=True, read_only=True)
+    organization_roles = UserOrganizationRoleSerializer(many=True, read_only=True)
     
     class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ['roles']
+        fields = list(UserSerializer.Meta.fields) + ['organization_roles']
 
 class TeamDetailSerializer(TeamSerializer):
     members = UserSerializer(many=True, read_only=True)
@@ -121,8 +116,14 @@ class SubmissionDetailSerializer(SubmissionSerializer):
 class OrganizationDetailSerializer(OrganizationSerializer):
     teams = TeamSerializer(many=True, read_only=True)
     assignments = AssignmentSerializer(many=True, read_only=True)
+    roles = RoleSerializer(many=True, read_only=True)
     
     class Meta(OrganizationSerializer.Meta):
-        fields = list(OrganizationSerializer.Meta.fields) + ['teams', 'assignments']
+        fields = list(OrganizationSerializer.Meta.fields) + ['teams', 'assignments', 'roles']
 
+class RoleDetailSerializer(RoleSerializer):
+    organization = OrganizationSerializer(read_only=True)
+    users = UserSerializer(many=True, read_only=True)
 
+    class Meta(RoleSerializer.Meta):
+        fields = list(RoleSerializer.Meta.fields) + ['users']

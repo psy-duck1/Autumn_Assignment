@@ -21,22 +21,6 @@ class User(AbstractUser):
         related_name='custom_user_set',
     )
 
-class Role(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
-
-class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('user', 'role')
-
-    def __str__(self):
-        return f"{self.user.username} - {self.role.name}"
-
 class Organization(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -45,17 +29,26 @@ class Organization(models.Model):
     def __str__(self):
         return self.name
 
-class OrganizationRole(models.Model):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+class Role(models.Model):
     name = models.CharField(max_length=50)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='roles')
 
     class Meta:
-        unique_together = ('organization', 'user', 'role')
+        unique_together = ('name', 'organization')
 
     def __str__(self):
-        return f"{self.organization.name} - {self.user.username} - {self.role.name}"
+        return f"{self.name} at {self.organization.name}"
+
+class UserOrganizationRole(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'organization', 'role')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role.name} at {self.organization.name}"
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
@@ -96,14 +89,13 @@ class Assignment(models.Model):
 
 class AssignmentRole(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    user_organization_role = models.ForeignKey(UserOrganizationRole, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('assignment', 'user', 'role')
+        unique_together = ('assignment', 'user_organization_role')
 
     def __str__(self):
-        return f"{self.assignment.title} - {self.user.username} - {self.role.name}"
+        return f"{self.assignment.title} - {self.user_organization_role}"
 
 class TeamAssignment(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
