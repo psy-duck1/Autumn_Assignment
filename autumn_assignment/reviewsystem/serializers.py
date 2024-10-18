@@ -4,7 +4,7 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_admin', 'created_at']
+        fields = ['id', 'username', 'email', 'enrollment_no', 'date_of_joining', 'phone_no', 'is_admin', 'created_at']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -85,6 +85,8 @@ class NotificationSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationSetting
         fields = '__all__'
+
+# Detailed Serializers
 
 class UserDetailSerializer(UserSerializer):
     organization_roles = UserOrganizationRoleSerializer(many=True, read_only=True)

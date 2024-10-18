@@ -2,10 +2,19 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
+    # Custom fields
+    username = models.CharField(max_length=50)
+    enrollment_no = models.CharField(max_length=8, unique=True)  # Initially allow null
+    email = models.EmailField(('email address'), unique=True)
+    date_of_joining = models.DateField(null=True)
+    phone_no = models.CharField(max_length=10, null=True, blank=True, default='00')
     is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Optional profile picture field (uncomment if needed)
+    # profile_picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
 
+    # Custom groups and permissions (if using Django's auth system)
     groups = models.ManyToManyField(
         'auth.Group',
         verbose_name='groups',
@@ -20,7 +29,12 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
         related_name='custom_user_set',
     )
+    # Custom authentication fields
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']  # Remove 'enrollment_no' from REQUIRED_FIELDS for now
 
+    def __str__(self):
+        return self.username
 class Organization(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -31,14 +45,19 @@ class Organization(models.Model):
 
 class Role(models.Model):
     name = models.CharField(max_length=50)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='roles')
+    organization = models.ForeignKey(
+        Organization, 
+        on_delete=models.CASCADE, 
+        related_name='roles',
+        null=True,  # Allow null values temporarily
+        default=None  # Set a default value
+    )
 
     class Meta:
         unique_together = ('name', 'organization')
 
     def __str__(self):
-        return f"{self.name} at {self.organization.name}"
-
+        return f"{self.name} at {self.organization.name if self.organization else 'No Organization'}"
 class UserOrganizationRole(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
@@ -89,7 +108,12 @@ class Assignment(models.Model):
 
 class AssignmentRole(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    user_organization_role = models.ForeignKey(UserOrganizationRole, on_delete=models.CASCADE)
+    user_organization_role = models.ForeignKey(
+        UserOrganizationRole, 
+        on_delete=models.CASCADE, 
+        null=True,  # Allow null values temporarily
+        default=None  # Set a default value
+    )
 
     class Meta:
         unique_together = ('assignment', 'user_organization_role')
